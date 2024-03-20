@@ -4,7 +4,12 @@ import {
   useMediaQueryUp,
 } from '@genshin-optimizer/common/react-util'
 import { CardThemed, ModalWrapper } from '@genshin-optimizer/common/ui'
-import { objKeyMap, objPathValue, range } from '@genshin-optimizer/common/util'
+import {
+  notEmpty,
+  objKeyMap,
+  objPathValue,
+  range,
+} from '@genshin-optimizer/common/util'
 import type { CharacterKey } from '@genshin-optimizer/gi/consts'
 import {
   allArtifactSlotKeys,
@@ -27,6 +32,7 @@ import {
   TrendingUp,
 } from '@mui/icons-material'
 import CheckroomIcon from '@mui/icons-material/Checkroom'
+import CloseIcon from '@mui/icons-material/Close'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff'
 import {
@@ -37,6 +43,7 @@ import {
   CardHeader,
   Divider,
   Grid,
+  IconButton,
   MenuItem,
   Skeleton,
   TextField,
@@ -62,7 +69,6 @@ import {
   CharacterCardHeaderContent,
 } from '../../../../Components/Character/CharacterCard/CharacterCardHeader'
 import { CharacterCardStats } from '../../../../Components/Character/CharacterCard/CharacterCardStats'
-import CloseButton from '../../../../Components/CloseButton'
 import DropdownButton from '../../../../Components/DropdownMenu/DropdownButton'
 import {
   HitModeToggle,
@@ -106,9 +112,11 @@ const audio = new Audio('assets/notification.mp3')
 export default function TabBuild() {
   const { t } = useTranslation('page_character_optimize')
   const {
+    loadoutDatum,
     teamCharId,
     teamChar: { optConfigId, key: characterKey },
     teamId,
+    team,
   } = useContext(TeamCharacterContext)
   const { characterSheet } = useContext(CharacterContext)
   const database = useDatabase()
@@ -172,6 +180,7 @@ export default function TabBuild() {
     levelHigh,
     builds,
     buildDate,
+    useTeammateBuild,
   } = buildSetting
   const { data } = useContext(DataContext)
   const oldData = useOldData()
@@ -196,10 +205,27 @@ export default function TabBuild() {
       levelHigh,
       allowLocationsState,
       useExcludedArts,
+      useTeammateBuild,
     } = deferredArtsDirty && deferredBuildSetting
+
+    const teammateArtifactIds = Array.from(
+      new Set(
+        team.loadoutData
+          .filter(notEmpty)
+          .filter((loadoutDatum) => loadoutDatum.teamCharId !== teamCharId)
+          .map((loadoutDatum) =>
+            database.teams.getLoadoutArtifacts(loadoutDatum)
+          )
+          .flatMap((arts) => Object.values(arts))
+          .filter(notEmpty)
+          .map(({ id }) => id)
+      )
+    )
 
     return database.arts.values.filter((art) => {
       if (!useExcludedArts && artExclusion.includes(art.id)) return false
+      if (!useTeammateBuild && teammateArtifactIds.includes(art.id))
+        return false
       if (art.level < levelLow) return false
       if (art.level > levelHigh) return false
       const mainStats = mainStatKeys[art.slotKey]
@@ -221,7 +247,14 @@ export default function TabBuild() {
 
       return true
     })
-  }, [database, characterKey, deferredArtsDirty, deferredBuildSetting])
+  }, [
+    database,
+    characterKey,
+    deferredArtsDirty,
+    deferredBuildSetting,
+    team,
+    teamCharId,
+  ])
 
   const filteredArtIdMap = useMemo(
     () =>
@@ -406,7 +439,7 @@ export default function TabBuild() {
       solver.cancel() // Done using `solver`
 
       cancelToken.current = () => {}
-      const weaponId = database.teamChars.getLoadoutWeapon(teamCharId).id
+      const weaponId = database.teams.getLoadoutWeapon(loadoutDatum).id
       if (plotBaseNumNode) {
         const plotData = mergePlot(results.map((x) => x.plotData!))
         const solverBuilds = Object.values(plotData)
@@ -492,6 +525,7 @@ export default function TabBuild() {
     activeCharKey,
     setChartData,
     maxWorkers,
+    loadoutDatum,
     optConfigId,
     t,
     throwGlobalError,
@@ -667,6 +701,22 @@ export default function TabBuild() {
             excludedTotal={excludedTotal.in}
           />
 
+          <Button
+            fullWidth
+            startIcon={
+              useTeammateBuild ? <CheckBox /> : <CheckBoxOutlineBlank />
+            }
+            color={useTeammateBuild ? 'success' : 'secondary'}
+            onClick={() => {
+              database.optConfigs.set(optConfigId, {
+                useTeammateBuild: !useTeammateBuild,
+              })
+            }}
+            disabled={generatingBuilds}
+          >
+            {/* TODO: Translation */}
+            Use artifacts in teammates' builds
+          </Button>
           <Button
             fullWidth
             startIcon={allowPartial ? <CheckBox /> : <CheckBoxOutlineBlank />}
@@ -990,12 +1040,13 @@ function CopyTcButton({ build }: { build: GeneratedBuild }) {
   const database = useDatabase()
   const {
     teamCharId,
+    loadoutDatum,
     teamChar: { key: characterKey },
   } = useContext(TeamCharacterContext)
 
   const toTc = () => {
     const weaponTypeKey = getCharData(characterKey).weaponType
-    const weapon = database.teamChars.getLoadoutWeapon(teamCharId)
+    const weapon = database.teams.getLoadoutWeapon(loadoutDatum)
     const buildTcId = database.teamChars.newBuildTcFromBuild(
       teamCharId,
       weaponTypeKey,
@@ -1026,7 +1077,11 @@ function CopyTcButton({ build }: { build: GeneratedBuild }) {
         <CardThemed>
           <CardHeader
             title="New Theorycraft Build"
-            action={<CloseButton onClick={OnHideTcPrompt} />}
+            action={
+              <IconButton onClick={OnHideTcPrompt}>
+                <CloseIcon />
+              </IconButton>
+            }
           />
           <Divider />
           <CardContent
@@ -1059,7 +1114,7 @@ function CopyBuildButton({
   build: GeneratedBuild
 }) {
   const [name, setName] = useState('')
-  const [showTcPrompt, onShowTcPrompt, OnHideTcPrompt] = useBoolState()
+  const [showPrompt, onShowPrompt, OnHidePrompt] = useBoolState()
 
   const database = useDatabase()
   const { teamCharId } = useContext(TeamCharacterContext)
@@ -1072,7 +1127,7 @@ function CopyBuildButton({
     })
 
     setName('')
-    OnHideTcPrompt()
+    OnHidePrompt()
   }
   return (
     <>
@@ -1080,17 +1135,21 @@ function CopyBuildButton({
         color="info"
         size="small"
         startIcon={<CheckroomIcon />}
-        onClick={onShowTcPrompt}
+        onClick={onShowPrompt}
       >
         New Build
       </Button>
       {/* TODO: Dialog Wanted to use a Dialog here, but was having some weird issues with closing out of it */}
       {/* TODO: Translation */}
-      <ModalWrapper open={showTcPrompt} onClose={OnHideTcPrompt}>
+      <ModalWrapper open={showPrompt} onClose={OnHidePrompt}>
         <CardThemed>
           <CardHeader
             title="New Build"
-            action={<CloseButton onClick={OnHideTcPrompt} />}
+            action={
+              <IconButton onClick={OnHidePrompt}>
+                <CloseIcon />
+              </IconButton>
+            }
           />
           <Divider />
           <CardContent
@@ -1106,7 +1165,7 @@ function CopyBuildButton({
               fullWidth
             />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-              <Button onClick={OnHideTcPrompt}>Cancel</Button>
+              <Button onClick={OnHidePrompt}>Cancel</Button>
               <Button color="success" disabled={!name} onClick={toLoadout}>
                 Create
               </Button>

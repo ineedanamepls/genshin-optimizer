@@ -1,12 +1,15 @@
 import type { TeamCharacter } from '@genshin-optimizer/gi/db'
 import { useDatabase } from '@genshin-optimizer/gi/db-ui'
 import { allEleDmgKeys, allEleResKeys } from '@genshin-optimizer/gi/keymap'
+import BarChartIcon from '@mui/icons-material/BarChart'
+import CloseIcon from '@mui/icons-material/Close'
 import {
   Alert,
   Box,
   CardContent,
   CardHeader,
   Grid,
+  IconButton,
   ListItem,
   Stack,
   Typography,
@@ -15,9 +18,7 @@ import { useContext, useMemo } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import CardDark from '../../Components/Card/CardDark'
 import CardLight from '../../Components/Card/CardLight'
-import CloseButton from '../../Components/CloseButton'
 import ColorText from '../../Components/ColoredText'
-import { EnemyExpandCard } from '../../Components/EnemyEditor'
 import {
   FieldDisplayList,
   NodeFieldDisplay,
@@ -30,26 +31,32 @@ import { TeamCharacterContext } from '../../Context/TeamCharacterContext'
 import { allInputPremodKeys, uiInput as input } from '../../Formula'
 import type { ReadNode } from '../../Formula/type'
 import { nodeVStr } from '../../Formula/uiData'
-
 const cols = {
   xs: 1,
   md: 2,
   lg: 3,
 }
-
 export default function StatModal({ open, onClose }) {
   const { t } = useTranslation('page_character')
   return (
     <ModalWrapper open={open} onClose={onClose}>
       <CardDark>
         <CardHeader
-          title={t`addStats.title`}
-          action={<CloseButton onClick={onClose} />}
+          title={
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <BarChartIcon />
+              <span>{t`addStats.title`}</span>
+            </Box>
+          }
+          action={
+            <IconButton onClick={onClose}>
+              <CloseIcon />
+            </IconButton>
+          }
         />
         <CardContent sx={{ pt: 0 }}>
           <Stack spacing={1}>
             <BonusStatsEditor />
-            <EnemyExpandCard />
             <MainStatsCards />
           </Stack>
         </CardContent>

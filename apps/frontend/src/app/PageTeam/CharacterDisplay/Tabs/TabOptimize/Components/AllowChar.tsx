@@ -22,14 +22,17 @@ import type {
 import { allAllowLocationsState } from '@genshin-optimizer/gi/db'
 import { useDatabase, useOptConfig } from '@genshin-optimizer/gi/db-ui'
 import { SillyContext } from '@genshin-optimizer/gi/ui'
+import CloseIcon from '@mui/icons-material/Close'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ShowChartIcon from '@mui/icons-material/ShowChart'
 import {
   Box,
   Button,
   CardContent,
+  CardHeader,
   Divider,
   Grid,
+  IconButton,
   Stack,
   TextField,
   ToggleButton,
@@ -49,7 +52,6 @@ import SlotIcon from '../../../../../Components/Artifact/SlotIcon'
 import CardDark from '../../../../../Components/Card/CardDark'
 import CardLight from '../../../../../Components/Card/CardLight'
 import CharacterCardPico from '../../../../../Components/Character/CharacterCardPico'
-import CloseButton from '../../../../../Components/CloseButton'
 import InfoTooltip from '../../../../../Components/InfoTooltip'
 import ModalWrapper from '../../../../../Components/ModalWrapper'
 import SolidToggleButtonGroup from '../../../../../Components/SolidToggleButtonGroup'
@@ -136,6 +138,20 @@ export default function AllowChar({
       deferredSearchTerm,
       silly,
     ]
+  )
+
+  const locListLength = useMemo(
+    () =>
+      deferredDbDirty &&
+      new Set(
+        Object.keys(database.chars.data)
+          .filter(
+            (ck) =>
+              charKeyToLocCharKey(ck) !== charKeyToLocCharKey(characterKey)
+          )
+          .map(charKeyToLocCharKey)
+      ).size,
+    [characterKey, database.chars.data, deferredDbDirty]
   )
 
   const locList = Array.from(
@@ -291,7 +307,8 @@ export default function AllowChar({
 
   const onMouseUp = useCallback(() => setMouseUpDetected(true), [])
 
-  const total = locList.length
+  // `total` shouldn't rely on `locList.length` because it gets filtered
+  const total = locListLength
   const useTot = total - excludedLocations.length
   const totalStr = useTot === total ? useTot : `${useTot}/${total}`
   const charactersAllowed =
@@ -319,16 +336,21 @@ export default function AllowChar({
       >
         <CardDark>
           {/* Header */}
-          <CardContent>
-            <Box display="flex" gap={1} alignItems="center">
-              <Typography variant="h6">{t`excludeChar.title`}</Typography>
-              <InfoTooltip
-                title={<Typography>{t`excludeChar.tooltip`}</Typography>}
-              />
-              <Box flexGrow={1} />
-              <CloseButton onClick={onClose} size="small" />
-            </Box>
-          </CardContent>
+          <CardHeader
+            title={
+              <Box display="flex" gap={1} alignItems="center">
+                <Typography variant="h6">{t`excludeChar.title`}</Typography>
+                <InfoTooltip
+                  title={<Typography>{t`excludeChar.tooltip`}</Typography>}
+                />
+              </Box>
+            }
+            action={
+              <IconButton onClick={onClose}>
+                <CloseIcon />
+              </IconButton>
+            }
+          />
           <Divider />
           {/* Content */}
           <CardContent sx={{ pb: 0 }}>
@@ -548,7 +570,6 @@ function SelectItem({
     setCharListMode(mode)
     setCharList(new Set([...charList]).add(locKey))
   }, [selected, setCharListMode, setCharList, charList, locKey])
-  const disableTooltip = useMemo(() => charList.size !== 0, [charList.size])
   const allowed =
     // Character is already allowed, and not selected to be excluded
     (selected &&
@@ -592,7 +613,6 @@ function SelectItem({
         characterKey={database.chars.LocationToCharacterKey(locKey)}
         onMouseDown={onMouseDown}
         onMouseEnter={onMouseEnter}
-        disableTooltip={disableTooltip}
       />
       {content}
     </CardLight>
