@@ -1,13 +1,16 @@
-import { objMap, valueString } from '@genshin-optimizer/common/util'
+import { objKeyMap, objMap, valueString } from '@genshin-optimizer/common/util'
+import type { ArtifactSlotKey } from '@genshin-optimizer/gi/consts'
 import { allArtifactSlotKeys } from '@genshin-optimizer/gi/consts'
 import type { GeneratedBuild, ICachedArtifact } from '@genshin-optimizer/gi/db'
 import { useDatabase } from '@genshin-optimizer/gi/db-ui'
 import type { Unit } from '@genshin-optimizer/gi/keymap'
+import CloseIcon from '@mui/icons-material/Close'
 import {
   Box,
   Button,
   ClickAwayListener,
   Grid,
+  IconButton,
   Skeleton,
   Stack,
   Typography,
@@ -18,9 +21,9 @@ import type { TooltipProps } from 'recharts'
 import ArtifactCardPico from '../../../../../../Components/Artifact/ArtifactCardPico'
 import BootstrapTooltip from '../../../../../../Components/BootstrapTooltip'
 import CardDark from '../../../../../../Components/Card/CardDark'
-import CloseButton from '../../../../../../Components/CloseButton'
 import SqBadge from '../../../../../../Components/SqBadge'
 import WeaponCardPico from '../../../../../../Components/Weapon/WeaponCardPico'
+import { CharacterContext } from '../../../../../../Context/CharacterContext'
 import { DataContext } from '../../../../../../Context/DataContext'
 import { input } from '../../../../../../Formula'
 import { ArtifactSetBadges } from '../ArtifactSetBadges'
@@ -48,13 +51,16 @@ export default function CustomTooltip({
   const database = useDatabase()
   const { data } = useContext(DataContext)
   const { t } = useTranslation('page_character_optimize')
-
-  const artifactsBySlot: { [slot: string]: ICachedArtifact } = useMemo(
-    () =>
-      selectedPoint?.build?.artifactIds &&
-      objMap(selectedPoint.build.artifactIds, (id) => database.arts.get(id)),
-    [database.arts, selectedPoint]
-  )
+  const {
+    character: { equippedArtifacts, equippedWeapon },
+  } = useContext(CharacterContext)
+  const artifactsBySlot: Record<ArtifactSlotKey, ICachedArtifact | undefined> =
+    useMemo(
+      () =>
+        selectedPoint?.build?.artifactIds &&
+        objMap(selectedPoint.build.artifactIds, (id) => database.arts.get(id)),
+      [database.arts, selectedPoint]
+    ) ?? objKeyMap(allArtifactSlotKeys, () => undefined)
   const clickAwayHandler = useCallback(
     (e) => {
       if (
@@ -70,6 +76,12 @@ export default function CustomTooltip({
   )
 
   const currentlyEquipped =
+    equippedWeapon === selectedPoint?.build?.weaponId &&
+    allArtifactSlotKeys.every(
+      (slotKey) => artifactsBySlot[slotKey]?.id === equippedArtifacts[slotKey]
+    )
+
+  const activeBuild =
     data.get(input.weapon.id).value?.toString() ===
       selectedPoint?.build?.weaponId &&
     artifactsBySlot &&
@@ -115,17 +127,26 @@ export default function CustomTooltip({
                     <strong>{t('currentlyEquippedBuild')}</strong>
                   </SqBadge>
                 )}
+                {activeBuild && (
+                  <SqBadge color="success">
+                    {/* TODO: Translation */}
+                    <strong>Active Build</strong>
+                  </SqBadge>
+                )}
                 {generLabel && <SqBadge color="info">{generLabel}</SqBadge>}
                 {graphLabel && <SqBadge color="info">{graphLabel}</SqBadge>}
                 <Suspense fallback={<Skeleton width={300} height={50} />}>
                   <ArtifactSetBadges
                     artifacts={Object.values(artifactsBySlot)}
-                    currentlyEquipped={currentlyEquipped}
                   />
                 </Suspense>
               </Stack>
-              <Grid item flexGrow={1} />
-              <CloseButton onClick={() => setSelectedPoint(undefined)} />
+              <IconButton
+                onClick={() => setSelectedPoint(undefined)}
+                sx={{ ml: 'auto' }}
+              >
+                <CloseIcon />
+              </IconButton>
             </Stack>
             <Grid container direction="row" spacing={0.75} columns={6}>
               {selectedPoint.build?.weaponId && (

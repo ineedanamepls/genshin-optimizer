@@ -2,6 +2,7 @@ import {
   crawlObject,
   layeredAssignment,
   objKeyMap,
+  objMap,
   objPathValue,
   toDecimal,
 } from '@genshin-optimizer/common/util'
@@ -22,7 +23,6 @@ import type {
 } from '@genshin-optimizer/gi/db'
 import type { ICharacter } from '@genshin-optimizer/gi/good'
 import { getMainStatValue } from '@genshin-optimizer/gi/util'
-import { objectMap } from '../Util/Util'
 import { input, tally } from './index'
 import { deepNodeClone } from './internal'
 import type { Data, DisplaySub, Info, NumNode, ReadNode, StrNode } from './type'
@@ -136,7 +136,7 @@ function dataObjForCharacter(char: ICachedCharacter): Data {
 export interface CharInfo extends ICharacter {
   infusionAura: TeamCharacter['infusionAura']
   customMultiTargets: TeamCharacter['customMultiTargets']
-  conditional: TeamCharacter['conditional']
+  conditional: TeamCharacter['conditional'] & Team['conditional']
   bonusStats: TeamCharacter['bonusStats']
   enemyOverride: Team['enemyOverride']
   hitMode: TeamCharacter['hitMode']
@@ -221,7 +221,7 @@ export function dataObjForCharacterNew(
             constant(weight),
             infoMut(
               data(targetNode, {
-                premod: objectMap(bonusStats, (v, k) =>
+                premod: objMap(bonusStats, (v, k) =>
                   k.endsWith('_') ? percent(v / 100) : constant(v)
                 ),
                 hit: {
@@ -342,7 +342,8 @@ function uiDataForTeam(
             (x: ReadNode<number | string>) => {
               if (x.path[0] === 'targetBuff') return // Ignore teamBuff access
 
-              let readNode: ReadNode<number | string> | undefined, data: Data
+              let readNode: ReadNode<number> | ReadNode<string> | undefined,
+                data: Data
               if (x.path[0] === 'target') {
                 // Link the node to target data
                 readNode = getReadNode(x.path.slice(1))

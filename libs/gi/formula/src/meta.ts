@@ -955,6 +955,43 @@ export const conditionals = {
       int_only: false,
     },
   },
+  NighttimeWhispersInTheEchoingWoods: {
+    someBoolConditional: {
+      src: 'NighttimeWhispersInTheEchoingWoods',
+      name: 'someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'NighttimeWhispersInTheEchoingWoods',
+        qt: 'cond',
+        q: 'someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'NighttimeWhispersInTheEchoingWoods',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'NighttimeWhispersInTheEchoingWoods',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'NighttimeWhispersInTheEchoingWoods',
+      name: '_someNumConditional',
+      tag: {
+        et: 'self',
+        src: 'NighttimeWhispersInTheEchoingWoods',
+        qt: 'cond',
+        q: '_someNumConditional',
+      },
+      type: 'num',
+      int_only: false,
+    },
+  },
   NoblesseOblige: {
     set4: {
       src: 'NoblesseOblige',
@@ -1353,6 +1390,43 @@ export const conditionals = {
       tag: {
         et: 'self',
         src: 'ShimenawasReminiscence',
+        qt: 'cond',
+        q: '_someNumConditional',
+      },
+      type: 'num',
+      int_only: false,
+    },
+  },
+  SongOfDaysPast: {
+    someBoolConditional: {
+      src: 'SongOfDaysPast',
+      name: 'someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'SongOfDaysPast',
+        qt: 'cond',
+        q: 'someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'SongOfDaysPast',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'SongOfDaysPast',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'SongOfDaysPast',
+      name: '_someNumConditional',
+      tag: {
+        et: 'self',
+        src: 'SongOfDaysPast',
         qt: 'cond',
         q: '_someNumConditional',
       },
@@ -2029,6 +2103,65 @@ export const conditionals = {
       int_only: false,
     },
   },
+  Chevreuse: {
+    _someBoolConditional: {
+      src: 'Chevreuse',
+      name: '_someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'Chevreuse',
+        qt: 'cond',
+        q: '_someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'Chevreuse',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'Chevreuse',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'Chevreuse',
+      name: '_someNumConditional',
+      tag: {
+        et: 'self',
+        src: 'Chevreuse',
+        qt: 'cond',
+        q: '_someNumConditional',
+      },
+      type: 'num',
+      int_only: false,
+    },
+  },
+  Chiori: {
+    _someBoolConditional: {
+      src: 'Chiori',
+      name: '_someBoolConditional',
+      tag: { et: 'self', src: 'Chiori', qt: 'cond', q: '_someBoolConditional' },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'Chiori',
+      name: '_someListConditional',
+      tag: { et: 'self', src: 'Chiori', qt: 'cond', q: '_someListConditional' },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'Chiori',
+      name: '_someNumConditional',
+      tag: { et: 'self', src: 'Chiori', qt: 'cond', q: '_someNumConditional' },
+      type: 'num',
+      int_only: false,
+    },
+  },
   Chongyun: {
     _someBoolConditional: {
       src: 'Chongyun',
@@ -2329,6 +2462,28 @@ export const conditionals = {
       src: 'Furina',
       name: '_someNumConditional',
       tag: { et: 'self', src: 'Furina', qt: 'cond', q: '_someNumConditional' },
+      type: 'num',
+      int_only: false,
+    },
+  },
+  Gaming: {
+    _someBoolConditional: {
+      src: 'Gaming',
+      name: '_someBoolConditional',
+      tag: { et: 'self', src: 'Gaming', qt: 'cond', q: '_someBoolConditional' },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'Gaming',
+      name: '_someListConditional',
+      tag: { et: 'self', src: 'Gaming', qt: 'cond', q: '_someListConditional' },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'Gaming',
+      name: '_someNumConditional',
+      tag: { et: 'self', src: 'Gaming', qt: 'cond', q: '_someNumConditional' },
       type: 'num',
       int_only: false,
     },
@@ -2891,6 +3046,28 @@ export const conditionals = {
       int_only: true,
       min: 0,
       max: 4,
+    },
+  },
+  Navia: {
+    _someBoolConditional: {
+      src: 'Navia',
+      name: '_someBoolConditional',
+      tag: { et: 'self', src: 'Navia', qt: 'cond', q: '_someBoolConditional' },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'Navia',
+      name: '_someListConditional',
+      tag: { et: 'self', src: 'Navia', qt: 'cond', q: '_someListConditional' },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'Navia',
+      name: '_someNumConditional',
+      tag: { et: 'self', src: 'Navia', qt: 'cond', q: '_someNumConditional' },
+      type: 'num',
+      int_only: false,
     },
   },
   Neuvillette: {
@@ -3531,6 +3708,38 @@ export const conditionals = {
         qt: 'cond',
         q: '_someNumConditional',
       },
+      type: 'num',
+      int_only: false,
+    },
+  },
+  Xianyun: {
+    _someBoolConditional: {
+      src: 'Xianyun',
+      name: '_someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'Xianyun',
+        qt: 'cond',
+        q: '_someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'Xianyun',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'Xianyun',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'Xianyun',
+      name: '_someNumConditional',
+      tag: { et: 'self', src: 'Xianyun', qt: 'cond', q: '_someNumConditional' },
       type: 'num',
       int_only: false,
     },
@@ -5402,6 +5611,43 @@ export const conditionals = {
       int_only: false,
     },
   },
+  UrakuMisugiri: {
+    _someBoolConditional: {
+      src: 'UrakuMisugiri',
+      name: '_someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'UrakuMisugiri',
+        qt: 'cond',
+        q: '_someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'UrakuMisugiri',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'UrakuMisugiri',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'UrakuMisugiri',
+      name: '_someNumConditional',
+      tag: {
+        et: 'self',
+        src: 'UrakuMisugiri',
+        qt: 'cond',
+        q: '_someNumConditional',
+      },
+      type: 'num',
+      int_only: false,
+    },
+  },
   WolfFang: {
     _someBoolConditional: {
       src: 'WolfFang',
@@ -6544,6 +6790,75 @@ export const conditionals = {
       int_only: false,
     },
   },
+  UltimateOverlordsMegaMagicSword: {
+    _someBoolConditional: {
+      src: 'UltimateOverlordsMegaMagicSword',
+      name: '_someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'UltimateOverlordsMegaMagicSword',
+        qt: 'cond',
+        q: '_someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'UltimateOverlordsMegaMagicSword',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'UltimateOverlordsMegaMagicSword',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'UltimateOverlordsMegaMagicSword',
+      name: '_someNumConditional',
+      tag: {
+        et: 'self',
+        src: 'UltimateOverlordsMegaMagicSword',
+        qt: 'cond',
+        q: '_someNumConditional',
+      },
+      type: 'num',
+      int_only: false,
+    },
+  },
+  Verdict: {
+    _someBoolConditional: {
+      src: 'Verdict',
+      name: '_someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'Verdict',
+        qt: 'cond',
+        q: '_someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'Verdict',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'Verdict',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'Verdict',
+      name: '_someNumConditional',
+      tag: { et: 'self', src: 'Verdict', qt: 'cond', q: '_someNumConditional' },
+      type: 'num',
+      int_only: false,
+    },
+  },
   WasterGreatsword: {
     _someBoolConditional: {
       src: 'WasterGreatsword',
@@ -6918,6 +7233,43 @@ export const conditionals = {
       tag: {
         et: 'self',
         src: 'Deathmatch',
+        qt: 'cond',
+        q: '_someNumConditional',
+      },
+      type: 'num',
+      int_only: false,
+    },
+  },
+  DialoguesOfTheDesertSages: {
+    _someBoolConditional: {
+      src: 'DialoguesOfTheDesertSages',
+      name: '_someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'DialoguesOfTheDesertSages',
+        qt: 'cond',
+        q: '_someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'DialoguesOfTheDesertSages',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'DialoguesOfTheDesertSages',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'DialoguesOfTheDesertSages',
+      name: '_someNumConditional',
+      tag: {
+        et: 'self',
+        src: 'DialoguesOfTheDesertSages',
         qt: 'cond',
         q: '_someNumConditional',
       },
@@ -9268,6 +9620,43 @@ export const conditionals = {
       int_only: false,
     },
   },
+  CranesEchoingCall: {
+    _someBoolConditional: {
+      src: 'CranesEchoingCall',
+      name: '_someBoolConditional',
+      tag: {
+        et: 'self',
+        src: 'CranesEchoingCall',
+        qt: 'cond',
+        q: '_someBoolConditional',
+      },
+      type: 'bool',
+    },
+    _someListConditional: {
+      src: 'CranesEchoingCall',
+      name: '_someListConditional',
+      tag: {
+        et: 'self',
+        src: 'CranesEchoingCall',
+        qt: 'cond',
+        q: '_someListConditional',
+      },
+      type: 'list',
+      list: [],
+    },
+    _someNumConditional: {
+      src: 'CranesEchoingCall',
+      name: '_someNumConditional',
+      tag: {
+        et: 'self',
+        src: 'CranesEchoingCall',
+        qt: 'cond',
+        q: '_someNumConditional',
+      },
+      type: 'num',
+      int_only: false,
+    },
+  },
   DodocoTales: {
     _someBoolConditional: {
       src: 'DodocoTales',
@@ -10743,6 +11132,34 @@ export const formulas = {
       },
     },
   },
+  Chevreuse: {
+    normal1: {
+      src: 'Chevreuse',
+      name: 'normal1',
+      tag: {
+        et: 'self',
+        qt: 'formula',
+        q: 'dmg',
+        src: 'Chevreuse',
+        move: 'normal',
+        name: 'normal1',
+      },
+    },
+  },
+  Chiori: {
+    normal1: {
+      src: 'Chiori',
+      name: 'normal1',
+      tag: {
+        et: 'self',
+        qt: 'formula',
+        q: 'dmg',
+        src: 'Chiori',
+        move: 'normal',
+        name: 'normal1',
+      },
+    },
+  },
   Chongyun: {
     normal1: {
       src: 'Chongyun',
@@ -10906,6 +11323,20 @@ export const formulas = {
         qt: 'formula',
         q: 'dmg',
         src: 'Furina',
+        move: 'normal',
+        name: 'normal1',
+      },
+    },
+  },
+  Gaming: {
+    normal1: {
+      src: 'Gaming',
+      name: 'normal1',
+      tag: {
+        et: 'self',
+        qt: 'formula',
+        q: 'dmg',
+        src: 'Gaming',
         move: 'normal',
         name: 'normal1',
       },
@@ -11322,6 +11753,20 @@ export const formulas = {
         src: 'Nahida',
         move: 'skill',
         name: 'karma_dmg',
+      },
+    },
+  },
+  Navia: {
+    normal1: {
+      src: 'Navia',
+      name: 'normal1',
+      tag: {
+        et: 'self',
+        qt: 'formula',
+        q: 'dmg',
+        src: 'Navia',
+        move: 'normal',
+        name: 'normal1',
       },
     },
   },
@@ -11806,6 +12251,20 @@ export const formulas = {
         qt: 'formula',
         q: 'dmg',
         src: 'Xiangling',
+        move: 'normal',
+        name: 'normal1',
+      },
+    },
+  },
+  Xianyun: {
+    normal1: {
+      src: 'Xianyun',
+      name: 'normal1',
+      tag: {
+        et: 'self',
+        qt: 'formula',
+        q: 'dmg',
+        src: 'Xianyun',
         move: 'normal',
         name: 'normal1',
       },

@@ -24,7 +24,7 @@ import OptimizationTargetSelector from '../TabOptimize/Components/OptimizationTa
 import StatFilterCard from '../TabOptimize/Components/StatFilterCard'
 
 import { useForceUpdate } from '@genshin-optimizer/common/react-util'
-import { clamp } from '@genshin-optimizer/common/util'
+import { clamp, objPathValue } from '@genshin-optimizer/common/util'
 import type {
   ArtifactSlotKey,
   CharacterKey,
@@ -33,7 +33,7 @@ import {
   allArtifactSlotKeys,
   charKeyToLocCharKey,
 } from '@genshin-optimizer/gi/consts'
-import type { ICachedArtifact } from '@genshin-optimizer/gi/db'
+import { type ICachedArtifact } from '@genshin-optimizer/gi/db'
 import {
   Suspense,
   useCallback,
@@ -52,7 +52,7 @@ import { mergeData, uiDataForTeam } from '../../../../Formula/api'
 import { optimize } from '../../../../Formula/optimization'
 import type { NumNode } from '../../../../Formula/type'
 import type { DynStat } from '../../../../Solver/common'
-import { objPathValue, shouldShowDevComponents } from '../../../../Util/Util'
+import { shouldShowDevComponents } from '../../../../Util/Util'
 import MainStatSelectionCard from '../TabOptimize/Components/MainStatSelectionCard'
 import { dynamicData } from '../TabOptimize/foreground'
 import UpgradeOptChartCard from './UpgradeOptChartCard'
@@ -80,9 +80,11 @@ export default function TabUpopt() {
   const database = useDatabase()
   const { gender } = useDBMeta()
 
+  const activeCharKey = database.teams.getActiveTeamChar(teamId)!.key
+
   const noArtifact = useMemo(() => !database.arts.values.length, [database])
 
-  const buildSetting = useOptConfig(optConfigId)
+  const buildSetting = useOptConfig(optConfigId)!
   const { optimizationTarget, levelLow, levelHigh } = buildSetting
   const teamData = useTeamData()
   const { target: data } = teamData?.[characterKey as CharacterKey] ?? {}
@@ -210,7 +212,7 @@ export default function TabUpopt() {
     if (!characterKey || !optimizationTarget) return
     const teamData = getTeamData(database, teamId, teamCharId, 0, [])
     if (!teamData) return
-    const workerData = uiDataForTeam(teamData.teamData, gender, characterKey)[
+    const workerData = uiDataForTeam(teamData.teamData, gender, activeCharKey)[
       characterKey
     ]?.target.data![0]
     if (!workerData) return
@@ -331,15 +333,16 @@ export default function TabUpopt() {
     upoptCalc.calcSlowToIndex(5)
     setUpOptCalc(upoptCalc)
   }, [
-    teamCharId,
-    teamId,
     buildSetting,
     characterKey,
     database,
+    teamId,
+    teamCharId,
     gender,
+    activeCharKey,
+    check4th,
     show20,
     useFilters,
-    check4th,
   ])
 
   const dataContext: dataContextObj | undefined = useMemo(() => {

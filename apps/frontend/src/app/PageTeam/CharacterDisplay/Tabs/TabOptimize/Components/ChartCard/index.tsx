@@ -79,7 +79,9 @@ export default function ChartCard({
   const {
     teamChar: { optConfigId },
   } = useContext(TeamCharacterContext)
-  const { builds: generatedBuilds } = useOptConfig(optConfigId)
+  const { builds: generatedBuilds } = useOptConfig(optConfigId) ?? {
+    builds: [] as GeneratedBuild[],
+  }
 
   const [sliderLow, setSliderLow] = useState(-Infinity)
   const [sliderHigh, setSliderHigh] = useState(Infinity)
@@ -129,7 +131,7 @@ export default function ChartCard({
         const graphBuildIndex = graphBuilds?.findIndex(
           (build) =>
             build.weaponId === weaponId &&
-            artifactIdsArr.every((aId) => datumBuildMap[aId])
+            Object.values(build.artifactIds).every((aId) => datumBuildMap[aId])
         )
         if (graphBuildIndex !== undefined && graphBuildIndex !== -1) {
           // Skip setting y-value if it has already been set.
@@ -236,7 +238,7 @@ export default function ChartCard({
             >
               <span>
                 <Button
-                  color="error"
+                  color="secondary"
                   onClick={() => setPlotBase(undefined)}
                   disabled={!plotBase || disabled}
                 >
@@ -338,7 +340,9 @@ function Chart({
 }) {
   const { graphBuilds, setGraphBuilds } = useContext(GraphContext)
   const { t } = useTranslation('page_character_optimize')
-  const [selectedPoint, setSelectedPoint] = useState<EnhancedPoint>()
+  const [selectedPoint, setSelectedPoint] = useState<
+    EnhancedPoint | undefined
+  >()
   const addBuildToList = useCallback(
     (build: GeneratedBuild) => {
       setGraphBuilds([...(graphBuilds ?? []), build])

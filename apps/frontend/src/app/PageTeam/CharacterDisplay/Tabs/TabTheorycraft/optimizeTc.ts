@@ -1,4 +1,4 @@
-import { objMap, toDecimal } from '@genshin-optimizer/common/util'
+import { objMap, objPathValue, toDecimal } from '@genshin-optimizer/common/util'
 import type { SubstatKey } from '@genshin-optimizer/gi/consts'
 import {
   allSubstatKeys,
@@ -14,7 +14,7 @@ import type { OptNode } from '../../../../Formula/optimization'
 import { optimize, precompute } from '../../../../Formula/optimization'
 import type { Data, NumNode } from '../../../../Formula/type'
 import { constant, percent } from '../../../../Formula/utils'
-import { objPathValue, shouldShowDevComponents } from '../../../../Util/Util'
+import { shouldShowDevComponents } from '../../../../Util/Util'
 import { dynamicData } from '../TabOptimize/foreground'
 
 export type TCWorkerResult = TotalResult | CountResult | FinalizeResult
@@ -66,7 +66,9 @@ export function optimizeTcGetNodes(
   ) as NumNode | undefined
   if (!unoptimizedOptimizationTargetNode) return {}
 
-  const constraints = Object.keys(minTotal).map((k) => workerData.total[k])
+  const constraints = Object.keys(minTotal)
+    .map((k) => workerData.total![k])
+    .filter((n) => n) as NumNode[]
 
   let nodes = optimize(
     [unoptimizedOptimizationTargetNode, ...constraints],

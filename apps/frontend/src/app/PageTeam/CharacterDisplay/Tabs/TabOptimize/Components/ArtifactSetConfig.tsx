@@ -17,6 +17,7 @@ import {
 import { useDatabase, useOptConfig } from '@genshin-optimizer/gi/db-ui'
 import { CheckBox, CheckBoxOutlineBlank, Replay } from '@mui/icons-material'
 import BlockIcon from '@mui/icons-material/Block'
+import CloseIcon from '@mui/icons-material/Close'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ShowChartIcon from '@mui/icons-material/ShowChart'
 import StarRoundedIcon from '@mui/icons-material/StarRounded'
@@ -26,6 +27,7 @@ import {
   CardContent,
   Divider,
   Grid,
+  IconButton,
   Stack,
   Typography,
 } from '@mui/material'
@@ -35,7 +37,6 @@ import SetEffectDisplay from '../../../../../Components/Artifact/SetEffectDispla
 import SlotIcon from '../../../../../Components/Artifact/SlotIcon'
 import CardDark from '../../../../../Components/Card/CardDark'
 import CardLight from '../../../../../Components/Card/CardLight'
-import CloseButton from '../../../../../Components/CloseButton'
 import ColorText from '../../../../../Components/ColoredText'
 import { InfoTooltipInline } from '../../../../../Components/InfoTooltip'
 import ModalWrapper from '../../../../../Components/ModalWrapper'
@@ -64,7 +65,7 @@ export default function ArtifactSetConfig({
     teamChar: { conditional, optConfigId },
     teamCharId,
   } = useContext(TeamCharacterContext)
-  const { artSetExclusion } = useOptConfig(optConfigId)
+  const { artSetExclusion } = useOptConfig(optConfigId)!
   const [open, setOpen] = useState(false)
   const onOpen = useCallback(() => setOpen(true), [setOpen])
   const onClose = useCallback(() => setOpen(false), [setOpen])
@@ -228,11 +229,11 @@ export default function ArtifactSetConfig({
       {/* Begin modal */}
       <ModalWrapper open={open} onClose={onClose}>
         <CardDark>
-          <CardContent
-            sx={{ display: 'flex', gap: 1, justifyContent: 'space-between' }}
-          >
+          <CardContent sx={{ display: 'flex', gap: 1 }}>
             <Typography variant="h6">{t`artSetConfig.title`}</Typography>
-            <CloseButton onClick={onClose} />
+            <IconButton onClick={onClose} sx={{ ml: 'auto' }}>
+              <CloseIcon />
+            </IconButton>
           </CardContent>
           <Divider />
           <CardContent>
@@ -480,10 +481,6 @@ export default function ArtifactSetConfig({
               ))}
             </Grid>
           </CardContent>
-          <Divider />
-          <CardContent sx={{ py: 1 }}>
-            <CloseButton large onClick={onClose} />
-          </CardContent>
         </CardDark>
       </ModalWrapper>
     </>
@@ -548,7 +545,7 @@ function ArtifactSetCard({
   const {
     teamChar: { optConfigId },
   } = useContext(TeamCharacterContext)
-  const { artSetExclusion } = useOptConfig(optConfigId)
+  const { artSetExclusion } = useOptConfig(optConfigId)!
   const setExclusionSet = artSetExclusion?.[setKey] ?? []
   const allow4 = !setExclusionSet.includes(4)
   const slots = getNumSlots(slotCount)

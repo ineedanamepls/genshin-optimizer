@@ -1,3 +1,4 @@
+import { objPathValue } from '@genshin-optimizer/common/util'
 import type { StatFilterSetting, StatFilters } from '@genshin-optimizer/gi/db'
 import {
   CheckBox,
@@ -12,7 +13,6 @@ import CustomNumberInput, {
 } from '../../../../../Components/CustomNumberInput'
 import { DataContext } from '../../../../../Context/DataContext'
 import type { NodeDisplay } from '../../../../../Formula/uiData'
-import { objPathValue } from '../../../../../Util/Util'
 import OptimizationTargetSelector from './OptimizationTargetSelector'
 
 type OptimizationTargetEditorListProps = {
@@ -168,6 +168,7 @@ function OptimizationTargetEditorItem({
         optimizationTarget={path}
         setTarget={(target) => setTarget(target, path, index)}
         defaultText={t('targetSelector.selectBuildTarget')}
+        disabled={disabled}
       />
       <CustomNumberInputButtonGroupWrapper sx={{ flexBasis: 150, flexGrow: 1 }}>
         <CustomNumberInput

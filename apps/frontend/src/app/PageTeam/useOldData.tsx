@@ -17,14 +17,9 @@ export default function useOldData(): undefined | UIData {
   const {
     teamId,
     teamCharId,
-    team: { teamCharIds },
-    teamChar: {
-      key: characterKey,
-      compare,
-      compareType,
-      compareBuildId,
-      compareBuildTcId,
-    },
+    loadoutDatum,
+    team: { loadoutData },
+    teamChar: { key: characterKey },
   } = useContext(TeamCharacterContext)
 
   const { gender } = useDBMeta()
@@ -38,13 +33,19 @@ export default function useOldData(): undefined | UIData {
 
   useEffect(() => {
     if (!dbDirty) return () => {}
-    const unfollowTeamChars = teamCharIds.map((tcId) => {
-      const unfollowTeamChar = database.teamChars.follow(tcId, setDbDirty)
-      const unfollowChar = database.teamChars.followChar(tcId, setDbDirty)
-      const unfollowBuild =
-        tcId === teamCharId
-          ? database.teamChars.followCompareBuild(tcId, setDbDirty)
-          : database.teamChars.followBuild(tcId, setDbDirty)
+    const unfollowTeamChars = loadoutData.map((loadoutDatum) => {
+      if (!loadoutDatum) return () => {}
+      const unfollowTeamChar = loadoutDatum
+        ? database.teamChars.follow(loadoutDatum.teamCharId, setDbDirty)
+        : () => {}
+      const unfollowChar = loadoutDatum
+        ? database.teamChars.followChar(loadoutDatum.teamCharId, setDbDirty)
+        : () => {}
+      const unfollowBuild = loadoutDatum
+        ? loadoutDatum.teamCharId === teamCharId
+          ? database.teams.followLoadoutDatumCompare(loadoutDatum, setDbDirty)
+          : database.teams.followLoadoutDatum(loadoutDatum, setDbDirty)
+        : () => {}
       return () => {
         unfollowTeamChar()
         unfollowChar()
@@ -55,10 +56,12 @@ export default function useOldData(): undefined | UIData {
     return () => {
       unfollowTeamChars.forEach((unfollow) => unfollow())
     }
-  }, [dbDirty, teamCharId, database, teamCharIds, setDbDirty])
+  }, [dbDirty, teamCharId, database, loadoutData, setDbDirty])
 
   return useMemo(() => {
     if (!dbDirtyDeferred) return undefined
+    const { compare, compareType, compareBuildId, compareBuildTcId } =
+      loadoutDatum
     if (!compare) return undefined
     const { overrideArt, overrideWeapon } = ((): {
       overrideArt: ICachedArtifact[] | Data
@@ -66,25 +69,25 @@ export default function useOldData(): undefined | UIData {
     } => {
       switch (compareType) {
         case 'equipped': {
-          const char = database.chars.get(characterKey)
+          const char = database.chars.get(characterKey)!
           return {
             overrideArt: Object.values(char.equippedArtifacts)
               .map((id) => database.arts.get(id))
-              .filter((a) => a),
-            overrideWeapon: database.weapons.get(char.equippedWeapon),
+              .filter((a) => a) as ICachedArtifact[],
+            overrideWeapon: database.weapons.get(char.equippedWeapon)!,
           }
         }
         case 'real': {
-          const build = database.builds.get(compareBuildId)
+          const build = database.builds.get(compareBuildId)!
           return {
             overrideArt: Object.values(build.artifactIds)
               .map((id) => database.arts.get(id))
-              .filter((a) => a),
-            overrideWeapon: database.weapons.get(build.weaponId),
+              .filter((a) => a) as ICachedArtifact[],
+            overrideWeapon: database.weapons.get(build.weaponId)!,
           }
         }
         case 'tc': {
-          const buildTc = database.buildTcs.get(compareBuildTcId)
+          const buildTc = database.buildTcs.get(compareBuildTcId)!
           return {
             overrideArt: getArtifactData(buildTc),
             overrideWeapon: {
@@ -105,18 +108,15 @@ export default function useOldData(): undefined | UIData {
       overrideWeapon
     )
     if (!teamData) return undefined
-    const charUIData = teamData[characterKey].target
+    const charUIData = teamData[characterKey]!.target
     return charUIData
   }, [
     dbDirtyDeferred,
-    characterKey,
-    teamCharId,
+    loadoutDatum,
+    database,
     teamId,
     gender,
-    compare,
-    compareType,
-    compareBuildId,
-    compareBuildTcId,
-    database,
+    teamCharId,
+    characterKey,
   ])
 }

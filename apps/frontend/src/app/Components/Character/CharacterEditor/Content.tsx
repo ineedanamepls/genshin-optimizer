@@ -1,21 +1,26 @@
+import { useForceUpdate } from '@genshin-optimizer/common/react-util'
 import { CardThemed } from '@genshin-optimizer/common/ui'
 import { objKeyMap } from '@genshin-optimizer/common/util'
 import {
   allArtifactSlotKeys,
   charKeyToLocCharKey,
+  charKeyToLocGenderedCharKey,
 } from '@genshin-optimizer/gi/consts'
+import type { LoadoutDatum } from '@genshin-optimizer/gi/db'
 import { useDBMeta, useDatabase } from '@genshin-optimizer/gi/db-ui'
 import { getCharData } from '@genshin-optimizer/gi/stats'
-import { CharacterName } from '@genshin-optimizer/gi/ui'
+import { CharacterName, SillyContext } from '@genshin-optimizer/gi/ui'
 import AddIcon from '@mui/icons-material/Add'
-import { Box, Button, Grid, Typography } from '@mui/material'
-import { useContext, useMemo } from 'react'
+import CloseIcon from '@mui/icons-material/Close'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import { Box, Button, Grid, IconButton, Typography } from '@mui/material'
+import { useCallback, useContext, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { CharacterContext } from '../../../Context/CharacterContext'
 import { DataContext } from '../../../Context/DataContext'
+import { getCharSheet } from '../../../Data/Characters'
 import { uiInput as input } from '../../../Formula'
-import TeamCard from '../../../PageTeams/TeamCard'
-import CloseButton from '../../CloseButton'
 import ImgIcon from '../../Image/ImgIcon'
 import LevelSelect from '../../LevelSelect'
 import { CharacterCardStats } from '../CharacterCard/CharacterCardStats'
@@ -25,21 +30,56 @@ import {
 } from '../CharacterProfilePieces'
 import EquippedGrid from '../EquippedGrid'
 import TalentDropdown from '../TalentDropdown'
+import LoadoutCard from './LoadoutCard'
 import TravelerGenderSelect from './TravelerGenderSelect'
 
 export default function Content({ onClose }: { onClose?: () => void }) {
+  const { t } = useTranslation([
+    'page_character',
+    // Always load these 2 so character names are loaded for searching/sorting
+    'sillyWisher_charNames',
+    'charNames_gen',
+  ])
+  const navigate = useNavigate()
   const database = useDatabase()
   const {
     character,
     character: { key: characterKey },
     characterSheet,
   } = useContext(CharacterContext)
+  const { gender } = useDBMeta()
+  const { silly } = useContext(SillyContext)
+  const deleteCharacter = useCallback(async () => {
+    let name = getCharSheet(characterKey, gender).name
+    // Use translated string
+    if (typeof name === 'object')
+      name = t(
+        `${
+          silly ? 'sillyWisher_charNames' : 'charNames_gen'
+        }:${charKeyToLocGenderedCharKey(characterKey, gender)}`
+      )
+
+    if (!window.confirm(t('removeCharacter', { value: name }))) return
+    database.chars.remove(characterKey)
+    navigate('/characters')
+  }, [database, navigate, characterKey, gender, silly, t])
+
   return (
     <Box display="flex" flexDirection="column" gap={1}>
       <Box display="flex" gap={1}>
         <TravelerGenderSelect />
+        <Button
+          color="error"
+          onClick={() => deleteCharacter()}
+          startIcon={<DeleteForeverIcon />}
+          sx={{ marginLeft: 'auto' }}
+        >
+          {t('delete')}
+        </Button>
         {!!onClose && (
-          <CloseButton onClick={onClose} sx={{ marginLeft: 'auto' }} />
+          <IconButton onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
         )}
       </Box>
       <Box>
@@ -82,14 +122,14 @@ export default function Content({ onClose }: { onClose?: () => void }) {
             <Box>
               <Grid container columns={3} spacing={1}>
                 {(['auto', 'skill', 'burst'] as const).map((talentKey) => (
-                  <Grid item xs={1}>
+                  <Grid item xs={1} key={talentKey}>
                     <TalentDropdown
                       key={talentKey}
                       talentKey={talentKey}
                       dropDownButtonProps={{
                         startIcon: (
                           <ImgIcon
-                            src={characterSheet.getTalentOfKey(talentKey).img}
+                            src={characterSheet.getTalentOfKey(talentKey)?.img}
                             size={1.75}
                             sideMargin
                           />
@@ -147,13 +187,6 @@ function EquipmentSection() {
     </Box>
   )
 }
-const columns = {
-  xs: 1,
-  sm: 2,
-  md: 3,
-  lg: 3,
-  xl: 3,
-} as const
 function InTeam() {
   const navigate = useNavigate()
 
@@ -162,59 +195,66 @@ function InTeam() {
   } = useContext(CharacterContext)
   const database = useDatabase()
   const { gender } = useDBMeta()
-  const teamIds = useMemo(
-    () =>
-      database.teams.keys.filter((teamId) =>
-        database.teams
-          .get(teamId)
-          .teamCharIds.some(
-            (teamCharId) =>
-              database.teamChars.get(teamCharId).key === characterKey
-          )
-      ),
-    [characterKey, database]
+  const [dbDirty, setDbDirty] = useForceUpdate()
+  const loadoutTeamMap = useMemo(() => {
+    const loadoutTeamMap: Record<string, string[]> = {}
+    database.teamChars.entries.map(([teamCharId, teamChar]) => {
+      if (teamChar.key !== characterKey) return
+      if (!loadoutTeamMap[teamCharId]) loadoutTeamMap[teamCharId] = []
+    })
+    database.teams.entries.forEach(([teamId, team]) => {
+      const teamCharIdWithCKey = team.loadoutData.find(
+        (loadoutDatum) =>
+          loadoutDatum &&
+          database.teamChars.get(loadoutDatum?.teamCharId)?.key === characterKey
+      )
+      if (teamCharIdWithCKey)
+        loadoutTeamMap[teamCharIdWithCKey?.teamCharId].push(teamId)
+    })
+    return dbDirty && loadoutTeamMap
+  }, [dbDirty, characterKey, database])
+  useEffect(
+    () => database.teams.followAny(() => setDbDirty()),
+    [database, setDbDirty]
   )
-
-  const onAddTeam = () => {
+  useEffect(
+    () => database.teamChars.followAny(() => setDbDirty()),
+    [database, setDbDirty]
+  )
+  const onAddNewTeam = () => {
     const teamId = database.teams.new()
     const teamCharId = database.teamChars.new(characterKey)
     database.teams.set(teamId, (team) => {
-      team.teamCharIds[0] = teamCharId
+      team.loadoutData[0] = { teamCharId } as LoadoutDatum
     })
-    navigate(`/teams/${teamId}`)
+    navigate(`/teams/${teamId}`, { state: { openSetting: true } })
   }
-
   // TODO: Translation
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       <Typography variant={'h6'}>
-        Teams with <CharacterName characterKey={characterKey} gender={gender} />
+        Team Loadouts with{' '}
+        <CharacterName characterKey={characterKey} gender={gender} />
       </Typography>
-      <Grid container columns={columns} spacing={1}>
-        {teamIds.map((teamId) => (
-          <Grid item key={teamId} xs={1}>
-            <TeamCard
-              bgt="light"
-              teamId={teamId}
-              onClick={(cid) =>
-                navigate(`/teams/${teamId}${cid ? `/${cid}` : ''}`)
-              }
-              disableButtons
-            />
-          </Grid>
-        ))}
-        <Grid item xs={1}>
-          <Button
-            fullWidth
-            sx={{ height: '100%' }}
-            onClick={() => onAddTeam()}
-            color="info"
-            startIcon={<AddIcon />}
-          >
-            Add Team
-          </Button>
-        </Grid>
-      </Grid>
+
+      {Object.entries(loadoutTeamMap).map(([teamCharId, teamIds]) => (
+        <LoadoutCard
+          key={teamCharId}
+          teamCharId={teamCharId}
+          teamIds={teamIds}
+        />
+      ))}
+      <Button
+        fullWidth
+        onClick={() => onAddNewTeam()}
+        color="info"
+        startIcon={<AddIcon />}
+        variant="outlined"
+        sx={{ backgroundColor: 'contentLight.main' }}
+      >
+        Add new Loadout+Team
+      </Button>
+      <CardThemed bgt="light"></CardThemed>
     </Box>
   )
 }

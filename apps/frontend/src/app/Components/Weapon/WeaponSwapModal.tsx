@@ -2,11 +2,8 @@ import {
   useForceUpdate,
   useMediaQueryUp,
 } from '@genshin-optimizer/common/react-util'
-import {
-  clamp,
-  filterFunction,
-  sortFunction,
-} from '@genshin-optimizer/common/util'
+import { CardThemed, useInfScroll } from '@genshin-optimizer/common/ui'
+import { filterFunction, sortFunction } from '@genshin-optimizer/common/util'
 import { imgAssets } from '@genshin-optimizer/gi/assets'
 import type {
   RarityKey,
@@ -17,13 +14,17 @@ import { allRarityKeys } from '@genshin-optimizer/gi/consts'
 import { initialWeapon } from '@genshin-optimizer/gi/db'
 import { useDatabase } from '@genshin-optimizer/gi/db-ui'
 import { Add } from '@mui/icons-material'
+import CloseIcon from '@mui/icons-material/Close'
 import StarRoundedIcon from '@mui/icons-material/StarRounded'
 import {
   Box,
   Button,
   CardContent,
+  CardHeader,
   Divider,
   Grid,
+  IconButton,
+  Skeleton,
   TextField,
   ToggleButton,
   Typography,
@@ -35,7 +36,6 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -47,12 +47,10 @@ import {
   weaponSortConfigs,
   weaponSortMap,
 } from '../../Util/WeaponSort'
-import CardDark from '../Card/CardDark'
-import CloseButton from '../CloseButton'
 import CompareBuildButton from '../CompareBuildButton'
 import ImgIcon from '../Image/ImgIcon'
 import ModalWrapper from '../ModalWrapper'
-import PageAndSortOptionSelect from '../PageAndSortOptionSelect'
+import ShowingAndSortOptionSelect from '../ShowingAndSortOptionSelect'
 import SolidToggleButtonGroup from '../SolidToggleButtonGroup'
 import WeaponSelectionModal from './WeaponSelectionModal'
 
@@ -101,16 +99,12 @@ export default function WeaponSwapModal({
   )
 
   const brPt = useMediaQueryUp()
-  const maxNumWeaponsToDisplay = numToShowMap[brPt]
-
-  const [pageIndex, setpageIndex] = useState(0)
-  const invScrollRef = useRef<HTMLDivElement>(null)
 
   const [rarity, setRarity] = useState<RarityKey[]>([5, 4, 3])
   const [searchTerm, setSearchTerm] = useState('')
   const deferredSearchTerm = useDeferredValue(searchTerm)
 
-  const weaponIdList = useMemo(
+  const weaponIds = useMemo(
     () =>
       (dbDirty &&
         database.weapons.values
@@ -132,34 +126,17 @@ export default function WeaponSwapModal({
     [dbDirty, database, rarity, weaponTypeKey, deferredSearchTerm]
   )
 
-  const { weaponIdsToShow, numPages, currentPageIndex } = useMemo(() => {
-    const numPages = Math.ceil(weaponIdList.length / maxNumWeaponsToDisplay)
-    const currentPageIndex = clamp(pageIndex, 0, numPages - 1)
-    return {
-      weaponIdsToShow: weaponIdList.slice(
-        currentPageIndex * maxNumWeaponsToDisplay,
-        (currentPageIndex + 1) * maxNumWeaponsToDisplay
-      ),
-      numPages,
-      currentPageIndex,
-    }
-  }, [weaponIdList, pageIndex, maxNumWeaponsToDisplay])
-
-  // for pagination
-  const totalShowing = `${weaponIdList.length}`
-  const setPage = useCallback(
-    (e, value) => {
-      invScrollRef.current?.scrollIntoView({ behavior: 'smooth' })
-      setpageIndex(value - 1)
-    },
-    [setpageIndex, invScrollRef]
+  const { numShow, setTriggerElement } = useInfScroll(
+    numToShowMap[brPt],
+    weaponIds.length
+  )
+  const weaponIdsToShow = useMemo(
+    () => weaponIds.slice(0, numShow),
+    [weaponIds, numShow]
   )
 
-  const paginationProps = {
-    count: numPages,
-    page: currentPageIndex + 1,
-    onChange: setPage,
-  }
+  // for pagination
+  const totalShowing = `${weaponIds.length}`
 
   const showingTextProps = {
     numShowing: weaponIdsToShow.length,
@@ -169,124 +146,123 @@ export default function WeaponSwapModal({
   }
 
   return (
-    <ModalWrapper open={show} onClose={onClose}>
-      <CardDark>
-        <Suspense fallback={false}>
-          <WeaponSelectionModal
-            show={newWeaponModalShow}
-            onHide={() => setnewWeaponModalShow(false)}
-            onSelect={newWeapon}
-            weaponTypeFilter={weaponTypeKey}
-          />
-        </Suspense>
-        {/* Editor/character detail display */}
-        <Suspense fallback={false}>
-          <WeaponEditor
-            weaponId={editWeaponId}
-            footer
-            onClose={resetEditWeapon}
-          />
-        </Suspense>
-        <CardContent sx={{ py: 1 }}>
-          <Grid container>
-            <Grid item flexGrow={1}>
-              <Typography variant="h6">
+    <>
+      <Suspense fallback={false}>
+        <WeaponSelectionModal
+          show={newWeaponModalShow}
+          onHide={() => setnewWeaponModalShow(false)}
+          onSelect={newWeapon}
+          weaponTypeFilter={weaponTypeKey}
+        />
+      </Suspense>
+      {/* Editor/character detail display */}
+      <Suspense fallback={false}>
+        <WeaponEditor
+          weaponId={editWeaponId}
+          footer
+          onClose={resetEditWeapon}
+        />
+      </Suspense>
+      <ModalWrapper open={show} onClose={onClose}>
+        <CardThemed>
+          <CardHeader
+            title={
+              <Typography variant="h6" display="flex" gap={1}>
                 {weaponTypeKey ? (
                   <ImgIcon src={imgAssets.weaponTypes[weaponTypeKey]} />
-                ) : null}{' '}
-                {t`page_character:tabEquip.swapWeapon`}
+                ) : null}
+                <span>{t`page_character:tabEquip.swapWeapon`}</span>
               </Typography>
-            </Grid>
-            <Grid item>
-              <CloseButton onClick={onClose} />
-            </Grid>
-          </Grid>
-        </CardContent>
-        <Divider />
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Grid container spacing={1}>
-            <Grid item>
-              <SolidToggleButtonGroup
-                sx={{ height: '100%' }}
-                value={rarity}
-                size="small"
-              >
-                {allRarityKeys.map((star) => (
-                  <ToggleButton
-                    key={star}
-                    value={star}
-                    onClick={() => setRarity(rarityHandler(rarity, star))}
-                  >
-                    <Box display="flex">
-                      <strong>{star}</strong>
-                      <StarRoundedIcon />
-                    </Box>
-                  </ToggleButton>
-                ))}
-              </SolidToggleButtonGroup>
-            </Grid>
-            <Grid item flexGrow={1}>
-              <TextField
-                autoFocus
-                size="small"
-                value={searchTerm}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                  setSearchTerm(e.target.value)
-                }
-                label={t('page_weapon:weaponName')}
-                sx={{ height: '100%' }}
-                InputProps={{
-                  sx: { height: '100%' },
-                }}
-              />
-            </Grid>
-          </Grid>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            flexWrap="wrap"
+            }
+            action={
+              <IconButton onClick={onClose}>
+                <CloseIcon />
+              </IconButton>
+            }
+          />
+          <Divider />
+          <CardContent
+            sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
           >
-            <PageAndSortOptionSelect
-              paginationProps={paginationProps}
-              showingTextProps={showingTextProps}
-            />
-          </Box>
-          <Button
-            fullWidth
-            onClick={() => setnewWeaponModalShow(true)}
-            color="info"
-            startIcon={<Add />}
-          >
-            {t('page_weapon:addWeapon')}
-          </Button>
-          <Grid container spacing={1}>
-            {weaponIdsToShow.map((weaponId) => (
-              <Grid item key={weaponId} xs={6} sm={6} md={4} lg={3}>
-                <WeaponCard
-                  weaponId={weaponId}
-                  onClick={clickHandler}
-                  extraButtons={<CompareBuildButton weaponId={weaponId} />}
+            <Grid container spacing={1}>
+              <Grid item>
+                <SolidToggleButtonGroup
+                  sx={{ height: '100%' }}
+                  value={rarity}
+                  size="small"
+                >
+                  {allRarityKeys.map((star) => (
+                    <ToggleButton
+                      key={star}
+                      value={star}
+                      onClick={() => setRarity(rarityHandler(rarity, star))}
+                    >
+                      <Box display="flex">
+                        <strong>{star}</strong>
+                        <StarRoundedIcon />
+                      </Box>
+                    </ToggleButton>
+                  ))}
+                </SolidToggleButtonGroup>
+              </Grid>
+              <Grid item flexGrow={1}>
+                <TextField
+                  autoFocus
+                  size="small"
+                  value={searchTerm}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                    setSearchTerm(e.target.value)
+                  }
+                  label={t('page_weapon:weaponName')}
+                  sx={{ height: '100%' }}
+                  InputProps={{
+                    sx: { height: '100%' },
+                  }}
                 />
               </Grid>
-            ))}
-          </Grid>
-          {numPages > 1 && (
+            </Grid>
             <Box
-              pt={1}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
               flexWrap="wrap"
             >
-              <PageAndSortOptionSelect
-                paginationProps={paginationProps}
-                showingTextProps={showingTextProps}
-              />
+              <ShowingAndSortOptionSelect showingTextProps={showingTextProps} />
             </Box>
-          )}
-        </CardContent>
-      </CardDark>
-    </ModalWrapper>
+            <Button
+              fullWidth
+              onClick={() => setnewWeaponModalShow(true)}
+              color="info"
+              startIcon={<Add />}
+            >
+              {t('page_weapon:addWeapon')}
+            </Button>
+            <Grid container spacing={1}>
+              {weaponIdsToShow.map((weaponId) => (
+                <Grid item key={weaponId} xs={6} sm={6} md={4} lg={3}>
+                  <WeaponCard
+                    weaponId={weaponId}
+                    onClick={clickHandler}
+                    extraButtons={<CompareBuildButton weaponId={weaponId} />}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+            {weaponIds.length !== weaponIdsToShow.length && (
+              <Skeleton
+                ref={(node) => {
+                  if (!node) return
+                  setTriggerElement(node)
+                }}
+                sx={{ borderRadius: 1 }}
+                variant="rectangular"
+                width="100%"
+                height={100}
+              />
+            )}
+          </CardContent>
+        </CardThemed>
+      </ModalWrapper>
+    </>
   )
 }
